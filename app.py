@@ -10,6 +10,7 @@ pygame.init()
 # Screen dimensions
 STAGE_ONE_SPEED = 100
 STAGE_TWO_SPEED = 300
+BULLET_DELAY = 350
 
 WIDTH = 800
 HEIGHT = 400
@@ -51,6 +52,9 @@ class Beaver:
         self.current_ammo = self.max_ammo
         self.reloading = False
         self.reload_timer = 0 # This will store the time when reload started (in milliseconds)
+        self.last_shot_time = 0  # Track last time a bullet was shot
+        # Load ricochet sound
+        self.ricochet_sound = pygame.mixer.Sound("shot (1).mp3")
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -94,8 +98,9 @@ class Beaver:
         pygame.draw.line(screen, BLACK, (gun_x, gun_y), (gun_end_x, gun_end_y), 3)
 
     def shoot(self):
-        # Only shoot if there's ammo and not currently reloading
-        if self.current_ammo > 0 and not self.reloading:
+        # Only shoot if there's ammo, not reloading, and enough time has passed since last shot
+        current_time = pygame.time.get_ticks()
+        if self.current_ammo > 0 and not self.reloading and (current_time - self.last_shot_time >= BULLET_DELAY):
             gun_length = 30
             gun_x = self.x + self.width
             gun_y = self.y + self.height // 2
@@ -103,6 +108,13 @@ class Beaver:
             bullet_x = gun_x + gun_length * math.cos(rad)
             bullet_y = gun_y - gun_length * math.sin(rad)
             self.current_ammo -= 1 # Decrease ammo count
+            self.last_shot_time = current_time  # Update last shot time
+            # Play ricochet sound
+            self.ricochet_sound.play()
+            # If ammo reaches 0 after this shot, start reloading immediately
+            if self.current_ammo == 0:
+                self.reloading = True
+                self.reload_timer = pygame.time.get_ticks()
             return Bullet(bullet_x, bullet_y, self.angle)
         return None # Return None if unable to shoot
 
@@ -166,8 +178,8 @@ class GameManager:
         self.spawn_counter = 0
         self.spawn_interval = 60  # Frames between enemy spawns
         self.font = pygame.font.SysFont("arial", 24)
-        # New font for the reloading message: larger and bold
-        self.reloading_font = pygame.font.SysFont("arial", 48, bold=True)
+        # Use a smaller font for the reloading message
+        self.reloading_font = pygame.font.SysFont("arial", 24, bold=True)
 
 
         # Define a font for initial text sizing to set ENEMY_MIN_Y and BEAVER_MAX_Y_UPPER
@@ -193,6 +205,8 @@ class GameManager:
 
     def update(self):
         if self.game_over:
+            # Clear enemies when game is over so the game over text is visible
+            self.enemies = []
             return
 
         # Handle reloading mechanics
@@ -291,12 +305,11 @@ class GameManager:
         score_rect = score_text.get_rect(topright=(WIDTH - 10, 10))
         screen.blit(score_text, score_rect)
 
-
-        # Display reloading message
+        # Display reloading message below the stage text
         if self.beaver.reloading:
-            reloading_text = self.reloading_font.render("RELOADING...", True, BLUE) # Changed color to BLUE
-            # Center the reloading text on screen (vertically centered)
-            reloading_text_rect = reloading_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+            reloading_text = self.reloading_font.render("RELOADING...", True, BLUE)
+            # Position the reloading text below the stage text (e.g., 10px below)
+            reloading_text_rect = reloading_text.get_rect(center=(WIDTH // 2, stage_text_rect.bottom + 20))
             screen.blit(reloading_text, reloading_text_rect)
 
 
