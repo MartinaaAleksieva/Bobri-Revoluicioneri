@@ -27,7 +27,7 @@ class Beaver:
         self.y = HEIGHT - 50  # Ground level
         self.width = 40
         self.height = 40
-        self.hp = 100
+        self.hp = 30
         self.angle = 0  # Gun angle in degrees (0 = straight, -90 = up, 90 = down)
         self.speed = 5  # Running speed
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
@@ -36,9 +36,15 @@ class Beaver:
         # Update position (move background instead to simulate running)
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
-            self.angle = max(self.angle - 5, -90)  # Limit angle to -90 (up)
+            self.angle = min(self.angle + 5, 90)  # Limit angle to 90 (down)        
         if keys[pygame.K_DOWN]:
-            self.angle = min(self.angle + 5, 90)  # Limit angle to 90 (down)
+            self.angle = max(self.angle - 5, -90)  # Limit angle to -90 (up)
+        if keys[pygame.K_w]:
+            self.y = max(self.y - 5, 50)  
+        if keys[pygame.K_s]:
+            self.y = min(self.y + 5, HEIGHT - 50)  
+        # Update rect position
+        self.rect.y = self.y
 
     def draw(self, screen):
         # Draw beaver (simple rectangle)
@@ -151,7 +157,7 @@ class GameManager:
                     break
 
         # Update score
-        self.score += 0.1
+        # self.score += 0.1
 
     def draw(self, screen):
         screen.fill(WHITE)

@@ -1,3 +1,23 @@
 we want to create a very simple game on python, which is similar to the offline dinosaur game on google, but will be with beaver, who shoots enemies. The beaver could move his gun using the up and down arrowkeys to aim at the enemies. if an enemy hits the beaver he loses part of his hp. Based on those instructions, can you create a very well-structured architecture according to the simplicity of the game.
 
 can you make an additional feature, so the beaver is running in a line like the dinosaur game
+
+
+
+TODO:
+
+Must have:  Beaver and Enemy classes should be on separate files  
+Should have: Better graphics, Enemies should have lower speed
+Could have:
+database
+Wont have:
+
+
+Already Done:
+ Controls cant be reversed
+ Beaver should be able to move up and down
+ Score should not be updated unless you shoot an enemy successfully
+
+
+
+
