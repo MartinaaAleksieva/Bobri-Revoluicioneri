@@ -1,0 +1,34 @@
+we want to create a very simple game on python, which is similar to the offline dinosaur game on google, but will be with beaver, who shoots enemies. The beaver could move his gun using the up and down arrowkeys to aim at the enemies. if an enemy hits the beaver he loses part of his hp. Based on those instructions, can you create a very well-structured architecture according to the simplicity of the game.
+
+can you make an additional feature, so the beaver is running in a line like the dinosaur game
+
+I have this app.py program and when I press the W key, the gun moves gradully towards the top, but when I press the S key, it teleports right to the ground. Can you help me so the S key works gradually like the W one
+
+can you add a feature, which:
+firstly, sets the speed using self.speed = random.randint(1, 3)
+then, based on the score, gradually increases the speed using rantint again
+e.g. stage 1 is the default one, stage 2 will be when you hit 500 scorepoints and the speed will be between 3 and 5. Finally the stage 3 is speed betwwen 5 and 8
+
+
+
+TODO:
+
+Must have:  Beaver and Enemy classes should be on separate files  
+Should have:  
+Could have: 
+Wont have:
+
+
+Already Done:
+ Controls cant be reversed
+ Beaver should be able to move up and down
+ Score should not be updated unless you shoot an enemy successfully
+ Enemies should have lower speed
+ Reload cooldown (little reload bar)
+ bullet cooldown (350ms)
+ Sound effects for bullets
+ Better graphics
+
+
+
+
