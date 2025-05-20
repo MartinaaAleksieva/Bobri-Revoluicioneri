@@ -12,8 +12,8 @@ STAGE_ONE_SPEED = 100
 STAGE_TWO_SPEED = 300
 BULLET_DELAY = 350
 
-WIDTH = 800
-HEIGHT = 400
+WIDTH = 1200
+HEIGHT = 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Beaver Shooter Game")
 
@@ -40,8 +40,8 @@ class Beaver:
     def __init__(self):
         self.x = 100  # Fixed x-position
         self.y = HEIGHT - 50  # Ground level
-        self.width = 40
-        self.height = 40
+        self.width = 80
+        self.height = 80
         self.hp = 30
         self.angle = 0  # Gun angle in degrees (0 = straight, -90 = up, 90 = down)
         self.speed = 5  # Running speed
@@ -58,6 +58,11 @@ class Beaver:
         # Load beaver image
         self.image = pygame.image.load("bobar_1.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
+        # Load gun image
+        self.gun_image = pygame.image.load("pushka.png").convert_alpha()
+        self.gun_width = 80  # Increased gun width
+        self.gun_height = 40  # Increased gun height
+        self.gun_image = pygame.transform.scale(self.gun_image, (self.gun_width, self.gun_height))
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -76,25 +81,40 @@ class Beaver:
     def draw(self, screen):
         # Draw beaver using image instead of rectangle
         screen.blit(self.image, (self.x, self.y))
-        # Draw gun (line from beaver's center)
-        gun_length = 30
+        # Draw gun (pushka.png) rotated by angle and positioned at the beaver's side
         gun_x = self.x + self.width
-        gun_y = self.y + self.height // 2
+        gun_y = self.y + self.height // 2 - self.gun_height // 2
+        # Fix: rotate in the same direction as angle (not -self.angle)
+        rotated_gun = pygame.transform.rotate(self.gun_image, self.angle)
+        rotated_rect = rotated_gun.get_rect(center=(gun_x, gun_y + self.gun_height // 2))
+        screen.blit(rotated_gun, rotated_rect.topleft)
+        # Store the gun tip position for bullet spawn
+        self.gun_tip = self._calculate_gun_tip(gun_x, gun_y)
+
+    def _calculate_gun_tip(self, gun_x, gun_y):
+        # The black barrel is at the far right of the gun image
+        # Offset from the gun's base to the tip (barrel hole)
         rad = math.radians(self.angle)
-        gun_end_x = gun_x + gun_length * math.cos(rad)
-        gun_end_y = gun_y - gun_length * math.sin(rad)
-        pygame.draw.line(screen, BLACK, (gun_x, gun_y), (gun_end_x, gun_end_y), 3)
+        tip_offset = self.gun_width - 5  # 5px in from the right edge for the black part
+        tip_x = gun_x + tip_offset * math.cos(rad)
+        tip_y = gun_y + self.gun_height // 2 - tip_offset * math.sin(rad)
+        return (tip_x, tip_y)
 
     def shoot(self):
         # Only shoot if there's ammo, not reloading, and enough time has passed since last shot
         current_time = pygame.time.get_ticks()
         if self.current_ammo > 0 and not self.reloading and (current_time - self.last_shot_time >= BULLET_DELAY):
-            gun_length = 30
-            gun_x = self.x + self.width
-            gun_y = self.y + self.height // 2
-            rad = math.radians(self.angle)
-            bullet_x = gun_x + gun_length * math.cos(rad)
-            bullet_y = gun_y - gun_length * math.sin(rad)
+            # Use the gun tip position for bullet spawn
+            if hasattr(self, 'gun_tip'):
+                bullet_x, bullet_y = self.gun_tip
+            else:
+                # Fallback if gun_tip not set yet
+                gun_length = 30
+                gun_x = self.x + self.width
+                gun_y = self.y + self.height // 2
+                rad = math.radians(self.angle)
+                bullet_x = gun_x + gun_length * math.cos(rad)
+                bullet_y = gun_y - gun_length * math.sin(rad)
             self.current_ammo -= 1 # Decrease ammo count
             self.last_shot_time = current_time  # Update last shot time
             # Play ricochet sound
@@ -131,10 +151,13 @@ class Enemy:
     def __init__(self, score=0):
         self.x = WIDTH
         # Use the global ENEMY_MIN_Y for random Y generation
-        # Ensure enemy spawn Y is at least ENEMY_MIN_Y and not too low
         self.y = random.randint(int(ENEMY_MIN_Y), HEIGHT - 50)
-        self.width = 20
-        self.height = 20
+        # Make the enemy (vidra) larger to match the image size
+        self.width = 100
+        self.height = 80
+        # Load enemy image
+        self.image = pygame.image.load("vidra.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))
         # Set speed based on score (difficulty stages)
         if score < STAGE_ONE_SPEED:
             self.speed = random.randint(1, 3)
@@ -153,7 +176,8 @@ class Enemy:
 
 
     def draw(self, screen):
-        pygame.draw.rect(screen, RED, self.rect)
+        # Draw enemy using image instead of rectangle
+        screen.blit(self.image, (self.x, self.y))
 
 # GameManager class
 class GameManager:
@@ -231,13 +255,23 @@ class GameManager:
             self.spawn_counter = 0
 
         # Update enemies
-        # Keep enemies only if they are still on screen (not passed the left edge)
-        self.enemies = [enemy for enemy in self.enemies if enemy.x > -enemy.width]
-        for enemy in self.enemies:
+        # Prevent enemies from merging: if two enemies would overlap, stop the one behind
+        enemies_to_keep = []
+        for i, enemy in enumerate(self.enemies):
             enemy.update()
-            # Ensure enemy doesn't move above the ENEMY_MIN_Y (which is just below the ammo text)
             if enemy.rect.y < ENEMY_MIN_Y:
                 enemy.rect.y = int(ENEMY_MIN_Y)
+            # Prevent merging: check for overlap with previous enemies
+            for prev_enemy in self.enemies[:i]:
+                if enemy.rect.colliderect(prev_enemy.rect):
+                    # Move this enemy back to the right so they don't overlap
+                    enemy.x = prev_enemy.x + prev_enemy.width
+                    enemy.rect.x = enemy.x
+            if enemy.x <= -enemy.width:
+                self.score = max(0, self.score - 10)
+            else:
+                enemies_to_keep.append(enemy)
+        self.enemies = enemies_to_keep
 
 
         # Check collisions: Enemy with Beaver
