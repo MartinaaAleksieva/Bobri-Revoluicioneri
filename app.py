@@ -54,7 +54,10 @@ class Beaver:
         self.reload_timer = 0 # This will store the time when reload started (in milliseconds)
         self.last_shot_time = 0  # Track last time a bullet was shot
         # Load ricochet sound
-        self.ricochet_sound = pygame.mixer.Sound("shot (1).mp3")
+        self.ricochet_sound = pygame.mixer.Sound("shot.mp3")
+        # Load beaver image
+        self.image = pygame.image.load("bobar_1.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -71,23 +74,8 @@ class Beaver:
         self.rect.y = self.y
 
     def draw(self, screen):
-        # Draw beaver (simple rectangle)
-        pygame.draw.rect(screen, BROWN, self.rect)
-
-        # Draw the CAP
-        cap_width = self.width * 0.75
-        cap_height = self.height * 0.3
-        cap_x = self.x + (self.width - cap_width) / 2
-        cap_y = self.y - cap_height
-
-        pygame.draw.rect(screen, CAP_COLOR, (cap_x, cap_y, cap_width, cap_height))
-
-        brim_width = cap_width * 0.6
-        brim_height = 5
-        brim_x = cap_x + cap_width * 0.4
-        brim_y = cap_y + cap_height - (brim_height / 2)
-        pygame.draw.rect(screen, CAP_COLOR, (brim_x, brim_y, brim_width, brim_height))
-
+        # Draw beaver using image instead of rectangle
+        screen.blit(self.image, (self.x, self.y))
         # Draw gun (line from beaver's center)
         gun_length = 30
         gun_x = self.x + self.width
@@ -202,9 +190,16 @@ class GameManager:
         BEAVER_MAX_Y_UPPER = ENEMY_MIN_Y
         # --- END MODIFIED LINES ---
 
+        self.scream_played = False  # Track if scream sound has been played
+        self.scream_sound = pygame.mixer.Sound("screaming_beaver.mp3")
+
 
     def update(self):
         if self.game_over:
+            # Play scream sound only once when game over
+            if not self.scream_played:
+                self.scream_sound.play()
+                self.scream_played = True
             # Clear enemies when game is over so the game over text is visible
             self.enemies = []
             return
