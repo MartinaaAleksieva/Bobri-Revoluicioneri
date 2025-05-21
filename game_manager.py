@@ -26,9 +26,9 @@ class GameManager:
         self.font = pygame.font.SysFont("arial", 24) # Main font
         self.reloading_font = pygame.font.SysFont("arial", 24, bold=True) # Font for reloading message
         self.scream_played = False # Track if game over sound played
-        self.scream_sound = pygame.mixer.Sound("screaming_beaver.mp3") # Game over sound
+        self.scream_sound = pygame.mixer.Sound("audio/screaming_beaver.mp3") # Game over sound
         # Load and scale the end game image for game over background
-        self.end_image = pygame.image.load("endImg.jpeg").convert()
+        self.end_image = pygame.image.load("images/endImg.jpeg").convert()
         self.end_image = pygame.transform.scale(self.end_image, (constants.WIDTH, constants.HEIGHT))
 
     def update(self):

@@ -18,7 +18,7 @@ class Enemy:
         self.y = random.randint(self.min_y, self.max_y)
         
         # Load and scale the enemy image (vidra)
-        self.image = pygame.image.load("vidra.png").convert_alpha()
+        self.image = pygame.image.load("images/vidra.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
         
         # Set speed based on score (difficulty increases as score increases)

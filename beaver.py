@@ -26,14 +26,14 @@ class Beaver:
         self.last_shot_time = 0  # Last time a bullet was shot (ms)
         
         # Load ricochet sound for shooting
-        self.ricochet_sound = pygame.mixer.Sound("shot.mp3")
+        self.ricochet_sound = pygame.mixer.Sound("audio/shot.mp3")
         
         # Load beaver image and scale to fit
-        self.image = pygame.image.load("bobar_1.png").convert_alpha()
+        self.image = pygame.image.load("images/bobar_1.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
         
         # Load gun image and scale to fit
-        self.gun_image = pygame.image.load("pushka.png").convert_alpha()
+        self.gun_image = pygame.image.load("images/pushka.png").convert_alpha()
         self.gun_width = 80  # Gun image width
         self.gun_height = 40  # Gun image height
         self.gun_image = pygame.transform.scale(self.gun_image, (self.gun_width, self.gun_height))
